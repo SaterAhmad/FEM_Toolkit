@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BH.Engine.FEM.Compute
+namespace BH.Engine.FEM
 {
-    class GreenBarSitffnessMatrix
+    public static partial class Compute
     {
     }
 }
