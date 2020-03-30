@@ -8,7 +8,7 @@ using MathNet.Numerics.LinearAlgebra;
 using BH.oM.Structure.MaterialFragments;
 using BH.oM.Physical;
 
-namespace BH.Engine.FEM.Compute
+namespace BH.Engine.FEM
 {
     public static partial class Compute
     {
