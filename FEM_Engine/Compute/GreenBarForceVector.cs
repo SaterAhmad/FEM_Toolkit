@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace BH.Engine.FEM.Compute
 {
-    class GreenBarForceVector
+    public static partial class Compute
     {
+
+
     }
 }

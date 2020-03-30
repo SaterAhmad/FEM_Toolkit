@@ -51,6 +51,9 @@
       <HintPath>..\packages\MathNet.Numerics.4.9.0\lib\net40\MathNet.Numerics.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Physical_oM">
+      <HintPath>..\..\BHoM\Build\Physical_oM.dll</HintPath>
+    </Reference>
     <Reference Include="Structure_oM">
       <HintPath>..\..\BHoM\Build\Structure_oM.dll</HintPath>
     </Reference>
@@ -66,6 +69,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compute\GreenBarElementStress.cs" />
     <Compile Include="Compute\GreenBarForceVector.cs" />
     <Compile Include="Compute\GreenBarSitffnessMatrix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
