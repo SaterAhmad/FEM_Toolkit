@@ -15,7 +15,7 @@ namespace BH.Engine.FEM
 {
     public static partial class Query
     {
-        private static void Edof_BC_fext(out Matrix<double> Edof, out Vector<double> BC, out Vector<double> Fext, List<Bar> bars, List<Node> constraints, List<PointLoad> loads)
+        public static void Edof_BC_fext(out Matrix<double> Edof, out Vector<double> BC, out Vector<double> Fext, List<Bar> bars, List<Node> constraints, List<PointLoad> loads)
         {
             int nEL = bars.Count;
             int nNode = constraints.Count;

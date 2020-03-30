@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MathNet.Numerics.LinearAlgebra;
 using BH.oM.Structure.Elements;
 using BH.oM.Structure.MaterialFragments;
 using BH.oM.Physical;
+using BH.Engine.Structure;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace BH.Engine.FEM
 {
@@ -26,9 +27,8 @@ namespace BH.Engine.FEM
             Vector<double> u = ed.SubVector(3, 3) - ed.SubVector(0, 3);
             Vector<double> x = xo + u;
 
-            // current length
-            Vector<double> lo = (x.ToRowMatrix() * x).PointwiseSqrt();
-            double l0 = lo.ElementAt(0);
+            // initial length
+            double lo = Structure.Query.Length(aBar);
 
             // direction ...
             Matrix<double> k = x.ToColumnMatrix() * x.ToRowMatrix();
@@ -39,13 +39,13 @@ namespace BH.Engine.FEM
             double E = (aBar.SectionProperty.Material as IIsotropic).YoungsModulus;
 
             // elemental stiffness
-            Matrix<double> K1 = (E * Ao / Math.Pow(l0, 3)) * k_final;
+            Matrix<double> K1 = (E * Ao / Math.Pow(lo, 3)) * k_final;
 
             // geometric stiffness
             Matrix<double> _I_ = MathNet.Numerics.LinearAlgebra.Double.DiagonalMatrix.CreateIdentity(3);
             Matrix<double> _I = _I_.Stack(-1 * _I_).Transpose();
             Matrix<double> I = _I.Stack(-1 * _I);
-            Matrix<double> K2 = (N / l0) * I;
+            Matrix<double> K2 = (N / lo) * I;
 
             // return element stiffness matrix
             Matrix<double> Ke = K1 + K2;

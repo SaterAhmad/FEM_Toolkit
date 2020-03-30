@@ -11,7 +11,6 @@ namespace BH.Engine.FEM
 {
     public static partial class Compute
     {
-<<<<<<< HEAD
         public static Matrix<double> GreenBarForceVector(Bar aBar, double N, Vector<double> ed)
         {
             double[,] ecArray = { { aBar.StartNode.Position.X, aBar.EndNode.Position.X }, { aBar.StartNode.Position.Y, aBar.EndNode.Position.Y }, { aBar.StartNode.Position.Z, aBar.EndNode.Position.Z } };
@@ -25,18 +24,11 @@ namespace BH.Engine.FEM
             Vector<double> u = edEnd - edStart;
             Vector<double> x = xo + u;
 
-            double deltaX = aBar.EndNode.Position.X - aBar.StartNode.Position.X;
-            double deltaY = aBar.EndNode.Position.Y - aBar.StartNode.Position.Y;
-            double deltaZ = aBar.EndNode.Position.Z - aBar.StartNode.Position.Z;
-
-            double lo = Math.Sqrt(Math.Pow(deltaX, 2) + Math.Pow(deltaY, 2) + Math.Pow(deltaZ, 2));
+            // initial length
+            double lo = Structure.Query.Length(aBar);
 
             Matrix<double> ef = (N / lo) * (-1 * x).ToColumnMatrix().Stack(x.ToColumnMatrix());
             return ef;
         }
-=======
-
-
->>>>>>> bar3ge
     }
 }

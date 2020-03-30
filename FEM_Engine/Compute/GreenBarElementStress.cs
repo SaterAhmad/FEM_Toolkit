@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BH.oM.Structure.Elements;
-using MathNet.Numerics.LinearAlgebra;
 using BH.oM.Structure.MaterialFragments;
 using BH.oM.Physical;
+using BH.Engine.Structure;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace BH.Engine.FEM
 {
@@ -26,14 +27,12 @@ namespace BH.Engine.FEM
 
             // bar displacement
             Vector<double> u = ed.SubVector(3, 3) - ed.SubVector(0, 3);
-            Vector<double> x = xo + u;
 
-            // current length
-            Vector<double> lo = (x.ToRowMatrix() * x).PointwiseSqrt();
-            double l0 = lo.ElementAt(0);
+            // initial length
+            double lo = Structure.Query.Length(aBar);
 
             // element stress (green)
-            Vector<double> ee = (1 / Math.Pow(l0, 2)) * (xo.ToColumnMatrix().Transpose() * u + u.ToColumnMatrix().Transpose() * u / 2);
+            Vector<double> ee = (1 / Math.Pow(lo, 2)) * (xo.ToColumnMatrix().Transpose() * u + u.ToColumnMatrix().Transpose() * u / 2);
             Vector<double> es = E * A * ee;
 
             return es.At(0);
