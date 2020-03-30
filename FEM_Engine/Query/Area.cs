@@ -11,7 +11,7 @@ namespace BH.Engine.FEM
     {
         public static double Area(this Rectangle rectangle)
         {
-            return 0;
+            return rectangle.Height*rectangle.Width;
         }
     }   
 }
