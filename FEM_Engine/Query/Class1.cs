@@ -16,19 +16,19 @@ namespace BH.Engine.FEM
 
             Matrix<double> t = Edof.RemoveColumn(0);
 
-            for (int i = 0; i<nie; i++)
+            for (int i = 0; i < nie; i++)
             {
-                int a = (int)t[elementNr-1,i];
-                
+                int a = (int)t[elementNr - 1, i];
+
                 for (int j = 0; j < n; j++)
                 {
-                    int b = (int)t[elementNr-1,j];
+                    int b = (int)t[elementNr - 1, j];
 
-                    K[a,b] = K[a,b] + Ke[i, j];
+                    K[a, b] = K[a, b] + Ke[i, j];
                 }
 
                 f[a] = f[a] + fe[i];
             }
-            
+
         }
     }
