@@ -11,7 +11,7 @@ namespace BH.Engine.FEM
 {
     public static partial class Compute
     {
-        public static Matrix<double> GreenBarForceVector(Bar aBar, double N, Vector<double> ed)
+        public static Vector<double> GreenBarForceVector(Bar aBar, double N, Vector<double> ed)
         {
             double[,] ecArray = { { aBar.StartNode.Position.X, aBar.EndNode.Position.X }, { aBar.StartNode.Position.Y, aBar.EndNode.Position.Y }, { aBar.StartNode.Position.Z, aBar.EndNode.Position.Z } };
             Matrix<double> ec = DenseMatrix.OfArray(ecArray);
@@ -28,7 +28,8 @@ namespace BH.Engine.FEM
             double lo = Structure.Query.Length(aBar);
 
             Matrix<double> ef = (N / lo) * (-1 * x).ToColumnMatrix().Stack(x.ToColumnMatrix());
-            return ef;
+
+            return ef.Column(0);
         }
     }
 }

@@ -9,25 +9,17 @@ namespace BH.Engine.FEM
 {
     public static partial class Query
     {
-        public static void Assem(Matrix<double> Edof, Matrix<double> K, Matrix<double> Ke, Vector<double> f, Vector<double> fe, int elementNr)
+        public static void Assem(ref Matrix<double> K, Matrix<double> Ke, ref Vector<double> f_int, Vector<double> fe, double[] edofRow)
         {
-            int n = Edof.RowCount;
-            int nie = Edof.ColumnCount;
-
-            Matrix<double> t = Edof.RemoveColumn(0);
-
-            for (int i = 0; i < nie; i++)
+            for (int i = 0; i < edofRow.Length; i++)
             {
-                int a = (int)t[elementNr - 1, i];
-
-                for (int j = 0; j < n; j++)
+                for (int j = 0; j < edofRow.Length; j++)
                 {
-                    int b = (int)t[elementNr - 1, j];
-
-                    K[a, b] = K[a, b] + Ke[i, j];
+                    // Stiffness matrix assembly
+                    K[(int)edofRow[i]-1, (int)edofRow[j]-1] = K[(int)edofRow[i]-1, (int)edofRow[j]-1] + Ke[i, j];
                 }
-
-                f[a] = f[a] + fe[i];
+                // Force matrix assembly
+                f_int[(int)edofRow[i]-1] = f_int[(int)edofRow[i]-1] + fe[i];
             }
 
         }
