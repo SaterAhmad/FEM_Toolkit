@@ -52,56 +52,29 @@ namespace BH.Engine.FEM
 
                 // Allocate space for global stiffness matrix
                 Matrix<double> K = DenseMatrix.Create(uniqueDofs.Count, uniqueDofs.Count, 0);
+
                 // Allocate space for global force vetor f_int
-                Vector<double> f_int = DenseVector.Create(uniqueDofs.Count, 0);
+                Vector<double> f_int = DenseVector.Create(uniqueDofs.Count,0);
 
                 for (int i = 0; i < nEL; i++)
                 {
-                    double N = es.At(i);
-                    Bar aBar = bars[i];
-                    Matrix<double> Ke_t = GreenBarStiffnessMatrix(aBar, N, ed.Row(i));
-                    Matrix<double> fe_int = GreenBarForceVector(aBar, N, ed.Row(i));
+                    Matrix<double> Ke = GreenBarStiffnessMatrix(bars[i], es.At(i), ed.Row(i));
+                    Vector<double> fe = GreenBarForceVector(bars[i], es.At(i), ed.Row(i));
 
-                    int n = Ke_t.Column(0).Count;
-                    int m = Ke_t.Row(0).Count;
+                    double[] edofRow = dofs.Row(i).ToArray();
 
-                    Vector<double> dofs_i = dofs.Row(i);
+                    // Assebmly Stiffness matrix and internal force vector
+                    Query.Assem(ref K, Ke, ref f_int, fe, edofRow);
 
-                    // Assemble into global K
-                    for (int j = 0; j < n; j++)
-                    {
-                        int a = (int)dofs_i.At(j) - 1;
-                        for (int k = 0; k < m; k++)
-                        {
-                            int b = (int)dofs_i.At(k) - 1;
-                            K[a, b] = K[a, b] + Ke_t[j, k];
-                        }
-                    }
-                    // Assemble into global f_int
-                    for (int j = 0; j < n; j++)
-                    {
-                        int a = (int)dofs_i.At(j) - 1;
-                        f_int[a] = f_int[a] + fe_int.Column(0)[j];
-                    }
                 }
+
                 // Partitioning
-                // f = f_ext - f_int
-                Vector<double> f = f_ext - f_int;
-                Matrix<double> K_part = MathNet.Numerics.LinearAlgebra.Double.DenseMatrix.Create(freedof.Count, freedof.Count, 0);
-                Vector<double> f_part = MathNet.Numerics.LinearAlgebra.Double.DenseVector.Create(freedof.Count, 0);
-                Vector<double> f_ext_part = MathNet.Numerics.LinearAlgebra.Double.DenseVector.Create(freedof.Count, 0);
+                Matrix<double> K_part;
+                Vector<double> f_part;
+                Vector<double> f_ext_part;
 
-                for (int j = 0; j < freedof.Count; j++)
-                {
-                    int a = (int)freedof[j] - 1;
-                    for (int k = 0; k < freedof.Count; k++)
-                    {
-                        int b = (int)freedof[k] - 1;
-                        K_part[j, k] = K[a, b];
-                    }
-                    f_part[j] = f_ext[a] - f_int[a];
-                    f_ext_part[j] = f_ext[a];
-                }
+                Query.Partioning(K, f_int, f_ext, freedof, out K_part, out f_part, out f_ext_part);
+
 
                 conv = (Math.Pow(f_part.Norm(2), 2) / (1 + Math.Pow(f_ext_part.Norm(2), 2)));
 
