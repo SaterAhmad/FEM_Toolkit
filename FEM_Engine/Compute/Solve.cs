@@ -14,16 +14,18 @@ namespace BH.Engine.FEM
 {
     public static partial class Compute
     {
-        public static List<FEMResult> Solve(List<Bar> bars, List<Node> constraints, List<PointLoad> loads, int maxIter, double tol)
+        public static List<FEMResult> Solve(List<Bar> bars, List<Node> constraints, List<PointLoad> loads, List<BarPrestressLoad> prestressloads, int maxIter, double tol)
+
         {
             int nEL = bars.Count;
-
+ 
             // Create Edof and get unique Dofs
             Matrix<double> edof;
             Vector<double> bc;
             Vector<double> f_ext;
+            Vector<double> pres;
 
-            Query.Edof_BC_fext(out edof, out bc, out f_ext, bars, constraints, loads);
+            Query.Edof_BC_fext(out edof, out bc, out f_ext, out pres, bars, constraints, loads, prestressloads);
 
             double[,] edofArray = edof.ToArray();
 
@@ -51,6 +53,9 @@ namespace BH.Engine.FEM
             while (conv > tol)
             {
                 count = count + 1;
+
+                // add Initial prestress
+                es += pres;
 
                 // Allocate space for global stiffness matrix
                 Matrix<double> K = DenseMatrix.Create(uniqueDofs.Count, uniqueDofs.Count, 0);

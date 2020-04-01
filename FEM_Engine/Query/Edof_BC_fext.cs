@@ -15,7 +15,7 @@ namespace BH.Engine.FEM
 {
     public static partial class Query
     {
-        public static void Edof_BC_fext(out Matrix<double> Edof, out Vector<double> BC, out Vector<double> Fext, List<Bar> bars, List<Node> constraints, List<PointLoad> loads)
+        public static void Edof_BC_fext(out Matrix<double> Edof, out Vector<double> BC, out Vector<double> Fext, out Vector<double> pres, List<Bar> bars, List<Node> constraints, List<PointLoad> loads, List<BarPrestressLoad> ploads)
         {
             int nEL = bars.Count;
             int nNode = constraints.Count;
@@ -46,13 +46,15 @@ namespace BH.Engine.FEM
                 nodeDofs.SetRow(i, nodeDof);
             }
 
+
+            // create edof
             Vector<double> e = DenseVector.Create(nEL, 0);
             Matrix<double> edof = DenseMatrix.Create(nEL, 6, 0);
 
             for (int i = 0; i < nEL; i++)
             {
                 Bar aBar = bars[i];
-
+                
                 int indStart = cullDup.IndexOf(Geometry.Query.ClosestPoint(aBar.StartNode.Position, cullDup));
                 int indEnd = cullDup.IndexOf(Geometry.Query.ClosestPoint(aBar.EndNode.Position, cullDup));
                 dofs.Add(indStart);
@@ -60,6 +62,11 @@ namespace BH.Engine.FEM
                 e[i] = i + 1;
 
                 edof.SetRow(i, nodeDofs.Row(indStart).ToColumnMatrix().Stack(nodeDofs.Row(indEnd).ToColumnMatrix()).Column(0));
+
+                //test of indexing
+                string id = "FEMID: " + i.ToString();
+                bars[i].Tags.Add(id);
+                
             }
 
             Vector<double> nDof = DenseVector.Create(1, 0);
@@ -110,6 +117,26 @@ namespace BH.Engine.FEM
                     fext[(int)nodeDofs.Row(nodeIndex).At(2) - 1] = ptLoad.Force.Z;
                 }
             }
+
+
+
+            pres = DenseVector.Create(edof.RowCount, 0);
+
+            for (int i = 0; i < ploads.Count; i++)
+            {
+
+                double Load = ploads[i].Prestress;
+                List <Bar> loadElements = ploads[i].Objects.Elements;
+
+               for (int j = 0; j < loadElements.Count; j++)
+                {
+                    int barIndex = bars.IndexOf(loadElements[j]);
+                    pres[barIndex] = Load;
+                }
+
+            }
+
+
             edof = edof.InsertColumn(0, e);
             Edof = edof;
             BC = bc.RemoveRow(0).Column(0);
