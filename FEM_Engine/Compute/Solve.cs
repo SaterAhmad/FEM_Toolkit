@@ -178,7 +178,6 @@ namespace BH.Engine.FEM
                 outResults.Add(outResult2);
             }
 
-            //return u;
             return outResults;          
         }
     }
