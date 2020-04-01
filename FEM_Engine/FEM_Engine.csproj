@@ -82,7 +82,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Query\Area.cs" />
     <Compile Include="Query\Assem.cs" />
-    <Compile Include="Query\createPres.cs" />
     <Compile Include="Query\Partioning.cs" />
     <Compile Include="Query\Edof_BC_fext.cs" />
   </ItemGroup>

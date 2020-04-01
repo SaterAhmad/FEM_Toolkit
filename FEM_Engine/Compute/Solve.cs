@@ -14,11 +14,11 @@ namespace BH.Engine.FEM
 {
     public static partial class Compute
     {
-        public static List<FEMResult> Solve(List<Bar> bars, List<Node> constraints, List<PointLoad> loads, List<BarPrestressLoad> prestressloads, int maxIter, double tol)
+        public static List<FEMResult> Solve(List<Bar> bars, List<Node> constraints, List<PointLoad> loads, List<BarPrestressLoad> prestressloads, int maxIter, double tol, int loadsteps)
 
         {
             int nEL = bars.Count;
- 
+
             // Create Edof and get unique Dofs
             Matrix<double> edof;
             Vector<double> bc;
@@ -50,6 +50,13 @@ namespace BH.Engine.FEM
             double conv = 1;
             //double tol = 0.000000001;
 
+            Vector<double> f_ext_current;
+
+            for ( int step = 0; step < loadsteps; step++)
+            {
+                
+                f_ext_current = step / loadsteps * f_ext;
+
             while (conv > tol)
             {
                 count = count + 1;
@@ -80,7 +87,7 @@ namespace BH.Engine.FEM
                 Vector<double> f_part;
                 Vector<double> f_ext_part;
 
-                Query.Partioning(K, f_int, f_ext, freedof, out K_part, out f_part, out f_ext_part);
+                Query.Partioning(K, f_int, f_ext_current, freedof, out K_part, out f_part, out f_ext_part);
 
 
                 conv = (Math.Pow(f_part.Norm(2), 2) / (1 + Math.Pow(f_ext_part.Norm(2), 2)));
@@ -110,7 +117,7 @@ namespace BH.Engine.FEM
                 // Extract Element Forces
                 for (int i = 0; i < nEL; i++)
                 {
-                    BH.oM.Structure.Elements.Bar aBar = (BH.oM.Structure.Elements.Bar)bars[i];
+                    Bar aBar = bars[i];
                     es[i] = GreenBarElementStress(aBar, ed.Row(i));
                 }
 
@@ -119,6 +126,9 @@ namespace BH.Engine.FEM
                     break;
                 }
             }
+
+            }
+
 
             List<FEMResult> outResults = new List<FEMResult>();
 
