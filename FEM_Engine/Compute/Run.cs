@@ -84,16 +84,7 @@ namespace BH.Engine.FEM
 
                     SolveEq(K, f_int, f_ext_current, ref u, freedof, out conv);
 
-                    // ed = extract(edof,a)
-                    for (int i = 0; i < nEL; i++)
-                    {
-                        int a = (int)edof.Row(i).At(0) - 1;
-                        for (int j = 0; j < dofs.Row(i).Count; j++)
-                        {
-                            int b = (int)dofs.Row(i).At(j) - 1;
-                            ed[a, j] = u[b];
-                        }
-                    }
+                    ed = Query.ExtractDisp(dofs, u);
 
                     // Extract Element Forces
                     for (int i = 0; i < nEL; i++)
