@@ -42,37 +42,56 @@ namespace BH.Engine.FEM
             Matrix<double> ed = DenseMatrix.Create(nEL, 6, 0);
             Vector<double> es = DenseVector.Create(nEL, 0);
 
-            // Allocate space for global diplacement vector a
+            // Allocate space for global diplacement vector u
             Vector<double> u = DenseVector.Create(uniqueDofs.Count, 0);
 
-            int count = 0;
-
             Vector<double> f_ext_current;
+            Vector<double> pres_current;
 
             for ( int step = 1; step <= loadsteps; step++)
             {
-                
-                f_ext_current = step / loadsteps * f_ext;
                 double conv = 1;
+                int count = 0;
+
+                f_ext_current = (step / loadsteps) * f_ext;
+                pres_current = (step / loadsteps) * pres;
+
+                
             while (conv > tol)
             {
                 count = count + 1;
 
                 // add Initial prestress
-                es += pres;
+                es += pres_current;
 
                 // Allocate space for global stiffness matrix
                 Matrix<double> K = DenseMatrix.Create(uniqueDofs.Count, uniqueDofs.Count, 0);
 
                 // Allocate space for global force vetor f_int
                 Vector<double> f_int = DenseVector.Create(uniqueDofs.Count,0);
+                Matrix<double> Ke;
+                Vector<double> fe;
 
+                // construct stiffnes matrix
                 for (int i = 0; i < nEL; i++)
                 {
-                    Matrix<double> Ke = GreenBarStiffnessMatrix(bars[i], es.At(i), ed.Row(i));
-                    Vector<double> fe = GreenBarForceVector(bars[i], es.At(i), ed.Row(i));
+                        if (bars[i].FEAType.Equals(BarFEAType.TensionOnly) && es[i] < 0)
+                        {
+                            Ke = DenseMatrix.Create(6, 6, 0);
+                            fe = DenseVector.Create(6, 0);
+                        }
+                        else if (bars[i].FEAType.Equals(BarFEAType.CompressionOnly) && es[i] > 0)
+                        {
+                            Ke = DenseMatrix.Create(6, 6, 0);
+                            fe = DenseVector.Create(6, 0);
+                        }
+                        else
+                        {
+                            Ke = GreenBarStiffnessMatrix(bars[i], es.At(i), ed.Row(i));
+                            fe = GreenBarForceVector(bars[i], es.At(i), ed.Row(i));
+                        }
 
-                    double[] edofRow = dofs.Row(i).ToArray();
+                        double[] edofRow = dofs.Row(i).ToArray();
 
                     // Assebmly Stiffness matrix and internal force vector
                     Query.Assem(ref K, Ke, ref f_int, fe, edofRow);
@@ -92,6 +111,7 @@ namespace BH.Engine.FEM
                 Vector<double> delta_u = K_part.Solve(f_part);
 
                 // a(freedof) = a(freedof) + delta_a;
+                // update displacements
                 for (int j = 0; j < freedof.Count; j++)
                 {
                     int a = (int)freedof[j] - 1;
@@ -99,21 +119,13 @@ namespace BH.Engine.FEM
                 }
 
                 // ed = extract(edof,a)
-                for (int i = 0; i < nEL; i++)
-                {
-                    int a = (int)edof.Row(i).At(0) - 1;
-                    for (int j = 0; j < dofs.Row(i).Count; j++)
-                    {
-                        int b = (int)dofs.Row(i).At(j) - 1;
-                        ed[a, j] = u[b];
-                    }
-                }
+
+                ed = Query.ExtractDisp(dofs, u);
 
                 // Extract Element Forces
                 for (int i = 0; i < nEL; i++)
                 {
-                    Bar aBar = bars[i];
-                    es[i] = GreenBarElementStress(aBar, ed.Row(i));
+                    es[i] = GreenBarElementStress(bars[i], ed.Row(i));
                 }
 
                 if (count > maxIter)
@@ -183,7 +195,8 @@ namespace BH.Engine.FEM
                 outResults.Add(outResult2);
             }
 
-            return outResults;          
+            return outResults;  
+            //return ed;
         }
     }
 }
