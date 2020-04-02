@@ -44,7 +44,7 @@ namespace BH.Engine.FEM
 
             // Allocate space for global diplacement vector u
             Vector<double> u = DenseVector.Create(uniqueDofs.Count, 0);
-        
+
             Vector<double> f_ext_current;
             Vector<double> pres_current;
 
@@ -56,7 +56,8 @@ namespace BH.Engine.FEM
                 f_ext_current = (step / loadsteps) * f_ext;
                 pres_current = (step / loadsteps) * pres;
 
-                while (conv > tol)
+                
+            while (conv > tol)
             {
                 count = count + 1;
 
@@ -106,10 +107,8 @@ namespace BH.Engine.FEM
 
 
                 conv = (Math.Pow(f_part.Norm(2), 2) / (1 + Math.Pow(f_ext_part.Norm(2), 2)));
-
-                // delta_a = inv(K(freedof,freedof))*f(freedof)
+               
                 Vector<double> delta_u = K_part.Solve(f_part);
-                //Vector<double> delta_u = K_part.Inverse() * f_part;
 
                 // a(freedof) = a(freedof) + delta_a;
                 // update displacements
