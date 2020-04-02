@@ -47,16 +47,13 @@ namespace BH.Engine.FEM
 
             int count = 0;
 
-            double conv = 1;
-            //double tol = 0.000000001;
-
             Vector<double> f_ext_current;
 
-            for ( int step = 0; step < loadsteps; step++)
+            for ( int step = 1; step <= loadsteps; step++)
             {
                 
                 f_ext_current = step / loadsteps * f_ext;
-
+                double conv = 1;
             while (conv > tol)
             {
                 count = count + 1;
@@ -91,10 +88,8 @@ namespace BH.Engine.FEM
 
 
                 conv = (Math.Pow(f_part.Norm(2), 2) / (1 + Math.Pow(f_ext_part.Norm(2), 2)));
-
-                // delta_a = inv(K(freedof,freedof))*f(freedof)
+               
                 Vector<double> delta_u = K_part.Solve(f_part);
-                //Vector<double> delta_u = K_part.Inverse() * f_part;
 
                 // a(freedof) = a(freedof) + delta_a;
                 for (int j = 0; j < freedof.Count; j++)

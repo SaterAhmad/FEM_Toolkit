@@ -78,12 +78,15 @@
     <Compile Include="Compute\GreenBarElementStress.cs" />
     <Compile Include="Compute\GreenBarForceVector.cs" />
     <Compile Include="Compute\GreenBarSitffnessMatrix.cs" />
+    <Compile Include="Compute\Run.cs" />
     <Compile Include="Compute\Solve.cs" />
+    <Compile Include="Compute\SolveEq.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Query\Area.cs" />
     <Compile Include="Query\Assem.cs" />
     <Compile Include="Query\Partioning.cs" />
     <Compile Include="Query\Edof_BC_fext.cs" />
+    <Compile Include="Query\Results.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
