@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FEM_oM", "FEM_oM\FEM_oM.csproj", "{0EDC62B0-9F36-4AF0-AF70-F47B94DC5088}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FEM_Engine", "FEM_Engine\FEM_Engine.csproj", "{BE420062-D314-4D69-9C2F-65E5C536A9A6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0EDC62B0-9F36-4AF0-AF70-F47B94DC5088} = {0EDC62B0-9F36-4AF0-AF70-F47B94DC5088}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
