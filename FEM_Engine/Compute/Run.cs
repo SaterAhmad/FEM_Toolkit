@@ -49,12 +49,12 @@ namespace BH.Engine.FEM
             // Allocate space for global diplacement vector a
             Vector<double> u = DenseVector.Create(uniqueDofs.Count, 0);
 
-            int count = 0;
-
             for (int step = 1; step <= loadsteps; step++)
             {
-                Vector<double> f_ext_current = step / loadsteps * f_ext;
-                Vector<double> pres_current = step / loadsteps * pres;
+                Vector<double> f_ext_current = ((double) step / (double) loadsteps) * f_ext;
+                Vector<double> pres_current = ((double) step / (double) loadsteps) * pres;
+
+                int count = 0;
                 double conv = 1;
 
                 while (conv>tol)
@@ -62,7 +62,7 @@ namespace BH.Engine.FEM
                     count = count + 1;
 
                     // add Initial prestress
-                    es += pres_current;
+                    es = es + pres_current;
 
                     // Allocate space for global stiffness matrix
                     Matrix<double> K = DenseMatrix.Create(uniqueDofs.Count, uniqueDofs.Count, 0);
@@ -70,10 +70,26 @@ namespace BH.Engine.FEM
                     // Allocate space for global force vetor f_int
                     Vector<double> f_int = DenseVector.Create(uniqueDofs.Count, 0);
 
+                    Matrix<double> Ke;
+                    Vector<double> fe;
+
                     for (int i = 0; i < nEL; i++)
                     {
-                        Matrix<double> Ke = GreenBarStiffnessMatrix(bars[i], es.At(i), ed.Row(i));
-                        Vector<double> fe = GreenBarForceVector(bars[i], es.At(i), ed.Row(i));
+                        if (bars[i].FEAType.Equals(BarFEAType.TensionOnly) && es[i] < 0)
+                        {
+                            Ke = DenseMatrix.Create(6, 6, 0);
+                            fe = DenseVector.Create(6, 0);
+                        }
+                        else if (bars[i].FEAType.Equals(BarFEAType.CompressionOnly) && es[i] > 0)
+                        {
+                            Ke = DenseMatrix.Create(6, 6, 0);
+                            fe = DenseVector.Create(6, 0);
+                        }
+                        else
+                        {
+                            Ke = GreenBarStiffnessMatrix(bars[i], es.At(i), ed.Row(i));
+                            fe = GreenBarForceVector(bars[i], es.At(i), ed.Row(i));
+                        }
 
                         double[] edofRow = dofs.Row(i).ToArray();
 
@@ -98,6 +114,7 @@ namespace BH.Engine.FEM
                         break;
                     }
                 }
+                es = es + pres_current;
             }
 
             List<FEMResult> outResult = FEM.Query.Results(bars, loads, es, ed);
