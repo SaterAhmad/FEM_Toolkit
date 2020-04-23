@@ -11,8 +11,15 @@ namespace BH.Engine.FEM
 {
     public static partial class Compute
     {
-        public static Vector<double> GreenBarForceVector(Bar aBar, double N, Vector<double> ed)
+        public static Vector<double> GreenBarForceVector(Bar aBar, double N, Vector<double> ed, bool isActive)
         {
+
+            if (isActive == false)
+            {
+                N = 1;
+            }
+
+
             double[,] ecArray = { { aBar.StartNode.Position.X, aBar.EndNode.Position.X }, { aBar.StartNode.Position.Y, aBar.EndNode.Position.Y }, { aBar.StartNode.Position.Z, aBar.EndNode.Position.Z } };
             Matrix<double> ec = DenseMatrix.OfArray(ecArray);
 

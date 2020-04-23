@@ -13,9 +13,24 @@ namespace BH.Engine.FEM
 {
     public static partial class Compute
     {
-        public static Matrix<double> GreenBarStiffnessMatrix(Bar aBar, double N, Vector<double> ed)
+        public static Matrix<double> GreenBarStiffnessMatrix(Bar aBar, double N, Vector<double> ed, bool isActive)
         {
+            double Ao;
+            double E;
+
+            if (isActive)
+            {
+                Ao = aBar.SectionProperty.Area;
+                E = (aBar.SectionProperty.Material as IIsotropic).YoungsModulus;
+            }
+            else
+            {
+                Ao = 1;
+                E = 1;
+                N = 1;
+            }
             
+
             // intitial bar coordinates
             double[,] _ec = { { aBar.StartNode.Position.X, aBar.EndNode.Position.X }, { aBar.StartNode.Position.Y, aBar.EndNode.Position.Y }, { aBar.StartNode.Position.Z, aBar.EndNode.Position.Z } };
             Matrix<double> ec = MathNet.Numerics.LinearAlgebra.Double.DenseMatrix.OfArray(_ec);
@@ -34,9 +49,6 @@ namespace BH.Engine.FEM
             Matrix<double> k = x.ToColumnMatrix() * x.ToRowMatrix();
             Matrix<double> k_ = k.Stack(-1 * k).Transpose();
             Matrix<double> k_final = k_.Stack(-1 * k_);
-
-            double Ao = aBar.SectionProperty.Area;
-            double E = (aBar.SectionProperty.Material as IIsotropic).YoungsModulus;
 
             // elemental stiffness
             Matrix<double> K1 = (E * Ao / Math.Pow(lo, 3)) * k_final;

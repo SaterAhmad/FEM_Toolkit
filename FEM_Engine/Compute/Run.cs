@@ -7,6 +7,7 @@ using BH.oM.FEM;
 using BH.oM.Structure.Constraints;
 using BH.oM.Structure.Elements;
 using BH.oM.Structure.Loads;
+using BH.oM.Structure.MaterialFragments;
 using BH.Engine.FEM;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
@@ -75,10 +76,12 @@ namespace BH.Engine.FEM
 
                     for (int i = 0; i < nEL; i++)
                     {
+                        bool isActive = true;
                         if (bars[i].FEAType.Equals(BarFEAType.TensionOnly) && es[i] < 0)
                         {
-                            Ke = DenseMatrix.Create(6, 6, 0);
-                            fe = DenseVector.Create(6, 0);
+                            isActive = false;
+                            Ke = GreenBarStiffnessMatrix(bars[i], es.At(i), ed.Row(i), isActive);
+                            fe = GreenBarForceVector(bars[i], es.At(i), ed.Row(i), isActive);
                         }
                         else if (bars[i].FEAType.Equals(BarFEAType.CompressionOnly) && es[i] > 0)
                         {
@@ -87,8 +90,8 @@ namespace BH.Engine.FEM
                         }
                         else
                         {
-                            Ke = GreenBarStiffnessMatrix(bars[i], es.At(i), ed.Row(i));
-                            fe = GreenBarForceVector(bars[i], es.At(i), ed.Row(i));
+                            Ke = GreenBarStiffnessMatrix(bars[i], es.At(i), ed.Row(i), isActive);
+                            fe = GreenBarForceVector(bars[i], es.At(i), ed.Row(i), isActive);
                         }
 
                         double[] edofRow = dofs.Row(i).ToArray();
@@ -105,8 +108,16 @@ namespace BH.Engine.FEM
                     // Extract Element Forces
                     for (int i = 0; i < nEL; i++)
                     {
-                        Bar aBar = bars[i];
-                        es[i] = GreenBarElementStress(aBar, ed.Row(i));
+                        bool isActive = true;
+                        if (bars[i].FEAType.Equals(BarFEAType.TensionOnly) && es[i] < 0)
+                        {
+                            isActive = false;
+                            es[i] = GreenBarElementStress(bars[i], ed.Row(i), isActive);
+                        }
+                        else
+                        {
+                            es[i] = GreenBarElementStress(bars[i], ed.Row(i), isActive);
+                        }
                     }
 
                     if (count > maxIter)

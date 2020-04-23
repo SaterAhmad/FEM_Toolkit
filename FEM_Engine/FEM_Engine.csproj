@@ -79,7 +79,6 @@
     <Compile Include="Compute\GreenBarForceVector.cs" />
     <Compile Include="Compute\GreenBarSitffnessMatrix.cs" />
     <Compile Include="Compute\Run.cs" />
-    <Compile Include="Compute\Solve.cs" />
     <Compile Include="Compute\SolveEq.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Query\Area.cs" />

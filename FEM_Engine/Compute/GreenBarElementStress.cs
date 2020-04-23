@@ -13,10 +13,22 @@ namespace BH.Engine.FEM
 {
     public static partial class Compute
     {
-        public static double GreenBarElementStress(Bar aBar, Vector<double> ed)
+        public static double GreenBarElementStress(Bar aBar, Vector<double> ed, bool isActive)
         {
-            double E = (aBar.SectionProperty.Material as IIsotropic).YoungsModulus;
-            double A = aBar.SectionProperty.Area;
+            double E;
+            double A;
+
+            if (isActive)
+            { 
+            E = (aBar.SectionProperty.Material as IIsotropic).YoungsModulus;
+            A = aBar.SectionProperty.Area;
+            }
+            else
+            {
+                E = 1;
+                A = 1;
+            }
+            
 
             // initial coordinates
             double[,] _ec = { { aBar.StartNode.Position.X, aBar.EndNode.Position.X }, { aBar.StartNode.Position.Y, aBar.EndNode.Position.Y }, { aBar.StartNode.Position.Z, aBar.EndNode.Position.Z } };
