@@ -24,8 +24,9 @@ namespace BH.Engine.FEM
             Vector<double> bc;
             Vector<double> f_ext;
             Vector<double> pres;
+            Matrix<double> bcSprings;
 
-            Query.Edof_BC_fext(out edof, out bc, out f_ext, out pres, bars, constraints, loads, prestressloads);
+            Query.Edof_BC_fext(out edof, out bc, out f_ext, out pres, out bcSprings, bars, constraints, loads, prestressloads);
 
             double[,] edofArray = edof.ToArray();
 
@@ -72,7 +73,17 @@ namespace BH.Engine.FEM
                 Matrix<double> Ke;
                 Vector<double> fe;
 
-                // construct stiffnes matrix
+                // Add spring supports
+                for (int s = 0; s < bcSprings.RowCount; s++)
+                    {
+                        int ind = (int)bcSprings[s, 0];
+                        double k = bcSprings[s, 1];
+
+                        K[ind, ind] = K[ind, ind] + k;
+                        f_int[ind] = f_int[ind] + k * u[ind];
+                    }
+
+                // construct stiffness matrix
                 for (int i = 0; i < nEL; i++)
                 {
                         if (bars[i].FEAType.Equals(BarFEAType.TensionOnly) && es[i] < 0)

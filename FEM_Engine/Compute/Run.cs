@@ -22,6 +22,7 @@ namespace BH.Engine.FEM
             int maxIter = settings.maxIter;
             double tol = settings.tol;
 
+            
             int nEL = bars.Count;
 
             // Create Edof and get unique Dofs
@@ -29,8 +30,9 @@ namespace BH.Engine.FEM
             Vector<double> bc;
             Vector<double> f_ext;
             Vector<double> pres;
+            Matrix<double> bcSprings;
 
-            Query.Edof_BC_fext(out edof, out bc, out f_ext, out pres, bars, constraints, loads, prestress);
+            Query.Edof_BC_fext(out edof, out bc, out f_ext, out pres, out bcSprings, bars, constraints, loads, prestress);
 
             double[,] edofArray = edof.ToArray();
 
@@ -50,13 +52,14 @@ namespace BH.Engine.FEM
             Vector<double> u = DenseVector.Create(uniqueDofs.Count, 0);
 
             int count = 0;
+            Vector<double> pres_current;
 
             for (int step = 1; step <= loadsteps; step++)
             {
-                Vector<double> f_ext_current = step / loadsteps * f_ext;
-                Vector<double> pres_current = step / loadsteps * pres;
+                Vector<double> f_ext_current = (double)step / (double)loadsteps * f_ext;
+                pres_current = pres.Multiply((double)step / (double)loadsteps);
                 double conv = 1;
-
+                
                 while (conv>tol)
                 {
                     count = count + 1;
@@ -70,6 +73,20 @@ namespace BH.Engine.FEM
                     // Allocate space for global force vetor f_int
                     Vector<double> f_int = DenseVector.Create(uniqueDofs.Count, 0);
 
+                    // Add spring supports
+                    if (bcSprings != null)
+                    {
+                        for (int m = 0; m < bcSprings.RowCount; m++)
+                        {
+                            int ind = (int)bcSprings[m, 0] - 1;
+                            double k = bcSprings[m, 1];
+
+                            K[ind, ind] = K[ind, ind] + k;
+                            f_int[ind] = f_int[ind] + k * u[ind];
+                        }
+                    }
+
+                    // Add element stiffness
                     for (int i = 0; i < nEL; i++)
                     {
                         Matrix<double> Ke = GreenBarStiffnessMatrix(bars[i], es.At(i), ed.Row(i));
