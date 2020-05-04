@@ -23,6 +23,7 @@ namespace BH.Engine.FEM
             int maxIter = settings.maxIter;
             double tol = settings.tol;
 
+            
             int nEL = bars.Count;
 
             // Create Edof and get unique Dofs
@@ -30,8 +31,9 @@ namespace BH.Engine.FEM
             Vector<double> bc;
             Vector<double> f_ext;
             Vector<double> pres;
+            Matrix<double> bcSprings;
 
-            Query.Edof_BC_fext(out edof, out bc, out f_ext, out pres, bars, constraints, loads, prestress);
+            Query.Edof_BC_fext(out edof, out bc, out f_ext, out pres, out bcSprings, bars, constraints, loads, prestress);
 
             double[,] edofArray = edof.ToArray();
 
@@ -57,7 +59,7 @@ namespace BH.Engine.FEM
 
                 int count = 0;
                 double conv = 1;
-
+                
                 while (conv>tol)
                 {
                     count = count + 1;
@@ -69,11 +71,25 @@ namespace BH.Engine.FEM
                     Matrix<double> K = DenseMatrix.Create(uniqueDofs.Count, uniqueDofs.Count, 0);
 
                     // Allocate space for global force vetor f_int
-                    Vector<double> f_int = DenseVector.Create(uniqueDofs.Count, 0);
+                    Vector<double> f_int = DenseVector.Create(uniqueDofs.Count, 0);                 
+
+                    // Add spring supports
+                    if (bcSprings != null)
+                    {
+                        for (int m = 0; m < bcSprings.RowCount; m++)
+                        {
+                            int ind = (int)bcSprings[m, 0] - 1;
+                            double k = bcSprings[m, 1];
+
+                            K[ind, ind] = K[ind, ind] + k;
+                            f_int[ind] = f_int[ind] + k * u[ind];
+                        }
+                    }
 
                     Matrix<double> Ke;
                     Vector<double> fe;
 
+                    // Add element stiffness
                     for (int i = 0; i < nEL; i++)
                     {
                         bool isActive = true;
@@ -98,7 +114,6 @@ namespace BH.Engine.FEM
 
                         // Assebmly Stiffness matrix and internal force vector
                         Query.Assem(ref K, Ke, ref f_int, fe, edofRow);
-
                     }
 
                     SolveEq(K, f_int, f_ext_current, ref u, freedof, out conv);

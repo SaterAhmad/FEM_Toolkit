@@ -8,6 +8,7 @@ using BH.oM.Structure.MaterialFragments;
 using BH.oM.Physical;
 using BH.Engine.Structure;
 using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.Providers.LinearAlgebra;
 
 namespace BH.Engine.FEM
 {
@@ -43,11 +44,17 @@ namespace BH.Engine.FEM
             // initial length
             double lo = Structure.Query.Length(aBar);
 
-            // element stress (green)
-            Vector<double> ee = (1 / Math.Pow(lo, 2)) * (xo.ToColumnMatrix().Transpose() * u + u.ToColumnMatrix().Transpose() * u / 2);
-            Vector<double> es = E * A * ee;
+            //current length
+            Vector<double> x = xo + u;
 
-            return es.At(0);
+            double L = x.L2Norm();
+
+            // element stress (green)
+            //Vector<double> ee = (1 / Math.Pow(lo, 2)) * (xo.ToColumnMatrix().Transpose() * u + u.ToColumnMatrix().Transpose() * u / 2);
+            double ee = 0.5 * (Math.Pow(L, 2) - Math.Pow(lo, 2)) / Math.Pow(lo, 2);
+            double es = E * A * ee;
+
+            return es;
 
         }
     }

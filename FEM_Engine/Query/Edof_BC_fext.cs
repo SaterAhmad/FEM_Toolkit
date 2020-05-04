@@ -15,8 +15,9 @@ namespace BH.Engine.FEM
 {
     public static partial class Query
     {
-        public static void Edof_BC_fext(out Matrix<double> Edof, out Vector<double> BC, out Vector<double> Fext, out Vector<double> pres, List<Bar> bars, List<Node> constraints, List<PointLoad> loads, List<BarPrestressLoad> ploads)
+        public static void Edof_BC_fext(out Matrix<double> Edof, out Vector<double> BC, out Vector<double> Fext, out Vector<double> pres, out Matrix<double> bcSprings, List<Bar> bars, List<Node> constraints, List<PointLoad> loads, List<BarPrestressLoad> ploads)
         {
+
             int nEL = bars.Count;
             int nNode = constraints.Count;
 
@@ -30,7 +31,7 @@ namespace BH.Engine.FEM
                 elPoints.Add(aBar.EndNode.Position);
             }
 
-            double tol = 1e-6;
+            double tol = 1e-5;
 
             List<Point> cullDup = Geometry.Compute.CullDuplicates(elPoints, tol);
 
@@ -70,7 +71,9 @@ namespace BH.Engine.FEM
             }
 
             Vector<double> nDof = DenseVector.Create(1, 0);
+            Vector<double> temp = DenseVector.Create(2, 0);
             Matrix<double> bc = DenseMatrix.Create(1, 1, 0);
+            Matrix<double> bc_stiffness = DenseMatrix.Create(1, 2, 0);
 
             for (int i = 0; i < constraints.Count; i++)
             {
@@ -78,6 +81,7 @@ namespace BH.Engine.FEM
 
                 int nodeIndex = cullDup.IndexOf(Geometry.Query.ClosestPoint(aNode.Position, cullDup));
 
+                // Fixed
                 if (aNode.Support.TranslationX.Equals(BH.oM.Structure.Constraints.DOFType.Fixed))
                 {
                     nDof[0] = nodeDofs.Row(nodeIndex).At(0);
@@ -95,6 +99,32 @@ namespace BH.Engine.FEM
                     nDof[0] = nodeDofs.Row(nodeIndex).At(2);
                     int index = bc.Column(0).Count;
                     bc = bc.InsertRow(index, nDof);
+                }
+
+                // Spring
+                if (aNode.Support.TranslationX.Equals(BH.oM.Structure.Constraints.DOFType.Spring))
+                {
+                    temp[0] = nodeDofs.Row(nodeIndex).At(0);
+                    temp[1] = aNode.Support.TranslationalStiffnessX;
+                    int index = bc_stiffness.Column(0).Count;
+                    bc_stiffness = bc_stiffness.InsertRow(index, temp);
+                }
+                if (aNode.Support.TranslationY.Equals(BH.oM.Structure.Constraints.DOFType.Spring))
+                {
+                    temp[0] = nodeDofs.Row(nodeIndex).At(1);
+                    temp[1] = aNode.Support.TranslationalStiffnessY;
+                    int index = bc_stiffness.Column(0).Count;
+                    bc_stiffness = bc_stiffness.InsertRow(index, temp);
+
+                }
+                if (aNode.Support.TranslationZ.Equals(BH.oM.Structure.Constraints.DOFType.Spring))
+                {
+
+                    temp[0] = nodeDofs.Row(nodeIndex).At(2);
+                    temp[1] = aNode.Support.TranslationalStiffnessZ;
+                    int index = bc_stiffness.Column(0).Count;
+                    bc_stiffness = bc_stiffness.InsertRow(index, temp);
+
                 }
             }
 
@@ -141,6 +171,18 @@ namespace BH.Engine.FEM
             Edof = edof;
             BC = bc.RemoveRow(0).Column(0);
             Fext = fext;
+           
+
+            if (bc_stiffness.RowCount > 1) 
+            {
+                bcSprings = bc_stiffness.RemoveRow(0); 
+            }
+            else
+            {
+                bcSprings = null;
+            }
+            
+            
         }
     }
 }
